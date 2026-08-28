@@ -6,7 +6,7 @@ import { haptics } from "@/lib/haptics.ts";
 // ─────────────────────────────────────────────────────────────────────────────
 //  Minimal, static passcode screen.
 //  • No hints, no intro, no transitions, almost zero animation.
-//  • Correct code (2407) → onUnlock() opens the chat instantly.
+//  • Correct code (2425) → onUnlock() opens the chat instantly.
 //  • 10 wrong attempts → device is permanently blocked (client-auth.ts).
 // ─────────────────────────────────────────────────────────────────────────────
 

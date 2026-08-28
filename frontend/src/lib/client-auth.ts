@@ -13,7 +13,7 @@
 //     site data. The 10-wrong-attempt lockout still deters casual poking.
 
 // ── Secrets (visible in bundle, but that's OK for this app) ──────────────────
-const PASSCODE = "2407";
+const PASSCODE = "2425";
 export const MAX_ATTEMPTS = 10;
 
 // ── localStorage keys ────────────────────────────────────────────────────────
