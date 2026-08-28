@@ -1752,7 +1752,7 @@ export default function ChatOverlay({
     setHighlightId(null);
   }, []);
 
-  // ── Close handling
+  // ── Close handling (re-locks the app: closeAll → onClose → App.lock)
   const closeAll = () => {
     setActionMenu(null);
     setImageViewer(null);
