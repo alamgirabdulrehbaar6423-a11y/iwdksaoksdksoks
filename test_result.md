@@ -105,6 +105,21 @@
 user_problem_statement: "Fix the search input keyboard-navigation bug. After the first search, pressing Up/Down arrow keys no longer navigates search results — instead the keypress scrolls/affects the chat or moves focus elsewhere. The same single search bar is used for 'photo'/'video'/'voice' searches. Up/Down must consistently navigate results, stay isolated to the search input, and keep working across repeated searches. NEW (current session): 'Wake Me Up' ⏰ button must place a REAL Twilio phone call to Faizan's iPhone (+966503787701) from Twilio number +17372212163; if answered, a neutral robot voice says 'Good morning'. Live call status (answered/no-answer) must show in the ringing overlay."
 
 backend:
+  - task: "WAKE-UP CALL SPEED FIX: hot keep-alive Twilio socket (undici agent + 45s keep-warm ping) + POST fired first on tap"
+    implemented: true
+    working: "NA"
+    file: "frontend/server/twilio-wake-up.ts, frontend/src/pages/homepage/_components/chat-overlay.tsx, frontend/package.json"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        -working: false
+        -agent: "user"
+        -comment: "User: wake-up call takes too much time to ring the iPhone after pressing the button — make it ring fast."
+        -working: "NA"
+        -agent: "main"
+        -comment: "Two speed fixes: (1) SERVER — Node's built-in fetch closes idle sockets after ~4s, so every tap paid fresh DNS+TCP+TLS to api.twilio.com (hundreds of ms). Added undici@6 with a dedicated Agent (keepAliveTimeout 55s) used for all Twilio requests, plus a 45s keep-warm interval reusing refreshAccountTier (tiny account GET) so the TLS socket NEVER goes cold; interval unref'd + cleared on server close; tier log now only prints on change. (2) FRONTEND — startWakeUp now fires fetch('/api/wake-up', POST) as the VERY FIRST statement on tap (before haptics/setState/ringtone AudioContext), async handler awaits the saved promise. Sanity: /api/wake-up/health (full Twilio round trip) now 67-84ms vs ~1s POST previously. NOTE: undici@8 crashed Vite on Node 20 (webidl markAsUncloneable) — pinned ^6 which is Node-20-native. Needs testing agent verification incl. ONE real call latency + time-to-ringing measurement."
+
   - task: "Twilio Wake-Up call API (Vite middleware): POST /api/wake-up places real call, GET /api/wake-up/status live status, GET /api/wake-up/health credential check"
     implemented: true
     working: true

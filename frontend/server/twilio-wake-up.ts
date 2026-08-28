@@ -22,6 +22,19 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
+// SPEED: undici with a custom Agent so the HTTPS connection to api.twilio.com
+// is kept alive between taps (Node's built-in fetch closes idle sockets after
+// ~4s, forcing a fresh DNS + TCP + TLS handshake — several hundred ms — on
+// every ⏰ tap). Combined with the keep-warm ping below, the socket is always
+// hot, so tapping ⏰ sends the call request over an ALREADY-OPEN connection.
+import { fetch as undiciFetch, Agent } from "undici";
+
+const twilioAgent = new Agent({
+  keepAliveTimeout: 55_000, // keep idle sockets open ~55s (refreshed by ping)
+  keepAliveMaxTimeout: 55_000,
+  connections: 2,
+  connect: { timeout: 5_000 },
+});
 
 interface TwilioConfig {
   accountSid: string;
@@ -85,7 +98,8 @@ async function twilioFetch(
   const auth = Buffer.from(`${cfg.accountSid}:${cfg.authToken}`).toString(
     "base64",
   );
-  const resp = await fetch(`${TWILIO_API}${path}`, {
+  const resp = await undiciFetch(`${TWILIO_API}${path}`, {
+    dispatcher: twilioAgent,
     method: init?.method ?? "GET",
     headers: {
       Authorization: `Basic ${auth}`,
@@ -146,12 +160,15 @@ async function refreshAccountTier(cfg: TwilioConfig): Promise<void> {
   try {
     const account = await twilioFetch(cfg, `/Accounts/${cfg.accountSid}.json`);
     if (account.ok) {
-      cachedIsTrial =
+      const isTrial =
         String(account.data.type ?? "").toLowerCase() === "trial";
+      if (isTrial !== cachedIsTrial) {
+        console.log(
+          `[wake-up] Twilio account tier cached: ${isTrial ? "Trial" : "Full"} (connection warmed)`,
+        );
+      }
+      cachedIsTrial = isTrial;
       tierCheckedAt = Date.now();
-      console.log(
-        `[wake-up] Twilio account tier cached: ${cachedIsTrial ? "Trial" : "Full"} (connection warmed)`,
-      );
     }
   } catch {
     /* network hiccup — keep the previous cached value */
@@ -357,6 +374,13 @@ export function twilioWakeUpPlugin(env: Record<string, string>): Plugin {
       // Warm-up at boot: caches the account tier AND primes DNS/TLS to
       // api.twilio.com so the first ⏰ tap goes straight to placing the call.
       void refreshAccountTier(cfg);
+      // KEEP-WARM — SPEED CRITICAL: ping Twilio every 45s (one tiny GET) so
+      // the keep-alive socket above NEVER goes cold. Every ⏰ tap therefore
+      // reuses an open TLS connection instead of paying DNS + TCP + TLS
+      // handshake (hundreds of ms) before the call can even be requested.
+      const keepWarm = setInterval(() => void refreshAccountTier(cfg), 45_000);
+      keepWarm.unref?.();
+      server.httpServer?.once("close", () => clearInterval(keepWarm));
       server.middlewares.use((req, res, next) => {
         if (!req.url?.startsWith("/api/wake-up")) {
           next();

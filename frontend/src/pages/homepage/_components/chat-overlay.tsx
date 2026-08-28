@@ -476,6 +476,14 @@ export default function ChatOverlay({
   }, [teardownWake]);
 
   const startWakeUp = useCallback(() => {
+    // ── REAL PHONE CALL — SPEED CRITICAL ────────────────────────────────────
+    // Fire the Twilio request in the VERY FIRST statement so it leaves the
+    // device the instant ⏰ is tapped — before haptics, state updates, the
+    // ringtone AudioContext or anything else runs. Every ms here delays the
+    // actual phone ringing. (The server keeps a hot TLS connection to Twilio,
+    // so this request goes straight onto an already-open socket.)
+    const callPromise = fetch("/api/wake-up", { method: "POST" });
+
     haptics.light();
     teardownWake();
     wakeRequestIdRef.current = null;
@@ -493,13 +501,12 @@ export default function ChatOverlay({
       wakeCloseRef.current = window.setTimeout(() => stopWakeUp(), 5000);
     }, 45000);
 
-    // ── REAL PHONE CALL — Twilio rings Faizan's actual iPhone ──────────────
-    // POST /api/wake-up (same-origin, credentials stay server-side) places
-    // the call; then we poll /api/wake-up/status every 3s so the overlay
-    // reflects the TRUE call state: answered 💗 / no answer 😴 / error ⚠️.
+    // ── Handle the call that was already fired above ────────────────────────
+    // We poll /api/wake-up/status every 2s so the overlay reflects the TRUE
+    // call state: answered 💗 / no answer 😴 / error ⚠️.
     void (async () => {
       try {
-        const resp = await fetch("/api/wake-up", { method: "POST" });
+        const resp = await callPromise;
         const data = (await resp.json().catch(() => null)) as {
           ok?: boolean;
           callSid?: string;
