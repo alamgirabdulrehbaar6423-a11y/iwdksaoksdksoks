@@ -36,6 +36,15 @@ import { notifyMissedWakeUp } from "@/lib/push.ts";
 import NotificationBell from "@/components/notification-bell.tsx";
 import MusicPage from "@/components/music/music-page.tsx";
 import NowPlayingPill from "@/components/music/now-playing-pill.tsx";
+import ThemeGallery from "./theme-gallery.tsx";
+import {
+  getChatTheme,
+  getInitialChatThemeId,
+  getInitialReduceFx,
+  CHAT_THEME_KEY,
+  CHAT_REDUCE_FX_KEY,
+  type ChatThemeId,
+} from "@/lib/chat-themes.ts";
 
 // ─── Persistent session identity ─────────────────────────────────────────────
 const SESSION_ID_KEY = "hb_chat_session_id";
@@ -389,14 +398,29 @@ export default function ChatOverlay({
     } catch { return "habiba"; }
   });
 
-  // Dark-mode toggle — scoped ONLY to the chat overlay (persisted in
+  // Theme system — scoped ONLY to the chat overlay (persisted in
   // localStorage). Every other page of the app stays in its normal palette.
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    try { return localStorage.getItem("hb_chat_dark_mode") === "1"; } catch { return false; }
-  });
+  // Themes are pure static CSS (see src/lib/chat-themes.ts + index.css):
+  // switching just flips a data-attribute, so there is zero ongoing cost.
+  const [themeId, setThemeId] = useState<ChatThemeId>(() => getInitialChatThemeId());
+  const [previewThemeId, setPreviewThemeId] = useState<ChatThemeId | null>(null);
+  const [themeGalleryOpen, setThemeGalleryOpen] = useState(false);
+  const [reduceFx, setReduceFx] = useState<boolean>(() => getInitialReduceFx());
   useEffect(() => {
-    try { localStorage.setItem("hb_chat_dark_mode", darkMode ? "1" : "0"); } catch { /* noop */ }
-  }, [darkMode]);
+    try {
+      localStorage.setItem(CHAT_THEME_KEY, themeId);
+      // Keep the legacy key in sync for backwards compatibility.
+      localStorage.setItem("hb_chat_dark_mode", getChatTheme(themeId).dark ? "1" : "0");
+    } catch { /* noop */ }
+  }, [themeId]);
+  useEffect(() => {
+    try { localStorage.setItem(CHAT_REDUCE_FX_KEY, reduceFx ? "1" : "0"); } catch { /* noop */ }
+  }, [reduceFx]);
+  // While previewing, the previewed theme is what the user sees.
+  const activeThemeId = previewThemeId ?? themeId;
+  const activeTheme = getChatTheme(activeThemeId);
+  // Existing dark-aware UI (menus, modals, music page) keys off this flag.
+  const darkMode = activeTheme.dark;
   const [sending, setSending] = useState(false);
   const [replyDraft, setReplyDraft] = useState<ReplyDraft | null>(null);
   const [actionMenu, setActionMenu] = useState<ActionMenuState | null>(null);
@@ -1739,7 +1763,9 @@ export default function ChatOverlay({
       <motion.div
         key="chat-overlay"
         className="fixed inset-0 z-50 flex items-stretch justify-center hb-chat-container"
-        data-hb-chat-theme={darkMode ? "dark" : "light"}
+        data-hb-chat-theme={activeThemeId}
+        data-hb-custom-theme={activeTheme.custom ? "" : undefined}
+        data-hb-reduce-fx={reduceFx ? "" : undefined}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -1948,8 +1974,8 @@ export default function ChatOverlay({
             <NotificationBell sender={sender} />
             {/* Dark-mode toggle \u2014 chat-only, does NOT affect other pages */}
             <motion.button
-              data-testid="chat-dark-toggle"
-              onClick={() => { haptics.light(); setDarkMode((d) => !d); }}
+              data-testid="chat-theme-btn"
+              onClick={() => { haptics.light(); setThemeGalleryOpen(true); }}
               whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.4)" }}
               whileTap={{ scale: 0.88 }}
               transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] as const }}
@@ -1967,11 +1993,11 @@ export default function ChatOverlay({
                 flexShrink: 0,
                 marginRight: 12,
               }}
-              aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-              title={darkMode ? "Light mode" : "Dark mode"}
+              aria-label="Change chat theme"
+              title="Chat themes"
             >
               <span aria-hidden style={{ fontSize: 18, lineHeight: 1 }}>
-                {darkMode ? "\u2600\ufe0f" : "\ud83c\udf19"}
+                🎨
               </span>
             </motion.button>
 
@@ -3115,6 +3141,24 @@ export default function ChatOverlay({
             />
           )}
         </AnimatePresence>
+
+        {/* Theme gallery + live preview bar (renders nothing while closed) */}
+        <ThemeGallery
+          open={themeGalleryOpen}
+          activeId={themeId}
+          previewId={previewThemeId}
+          reduceFx={reduceFx}
+          onPreview={(id) => { haptics.light(); setPreviewThemeId(id); }}
+          onApply={() => {
+            haptics.light();
+            if (previewThemeId) setThemeId(previewThemeId);
+            setPreviewThemeId(null);
+            setThemeGalleryOpen(false);
+          }}
+          onCancelPreview={() => { haptics.light(); setPreviewThemeId(null); }}
+          onClose={() => setThemeGalleryOpen(false)}
+          onToggleReduceFx={() => { haptics.light(); setReduceFx((v) => !v); }}
+        />
 
         {/* Unsend confirmation prompt */}
         <AnimatePresence>

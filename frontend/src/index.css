@@ -792,3 +792,369 @@ html, body {
   content-visibility: auto;
   contain-intrinsic-size: auto 56px;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHAT THEME SYSTEM — performance-first (see src/lib/chat-themes.ts)
+   • Pure static CSS: design tokens + tiny inline-SVG wallpaper tiles.
+   • No animation loops, no videos/GIFs/canvas/WebGL, no extra DOM nodes.
+   • A theme switch = one data-attribute change → single repaint.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Design tokens per theme (applied to the chat container AND to the tiny
+      gallery swatches, so previews always match the real theme) ─────────── */
+
+.hb-chat-container[data-hb-chat-theme="love"],
+.hb-theme-swatch[data-swatch="love"] {
+  --t-overlay-bg: #1c0930;
+  --t-sheet-bg: #180827;
+  --t-sheet-border: rgba(255,255,255,0.06);
+  --t-header-bg: linear-gradient(135deg, #8a2be2, #d81b7f);
+  --t-viewport-flat: #2f0c42;
+  --t-viewport-grad: linear-gradient(180deg, #2b0a3d 0%, #3a0e50 45%, #471258 100%);
+  --t-viewport-art: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'420'%20height%3D'740'%20viewBox%3D'0%200%20420%20740'%3E%3Cdefs%3E%3Cpath%20id%3D'h'%20d%3D'M12%2021.35l-1.45-1.32C5.4%2015.36%202%2012.28%202%208.5%202%205.42%204.42%203%207.5%203c1.74%200%203.41.81%204.5%202.09C13.09%203.81%2014.76%203%2016.5%203%2019.58%203%2022%205.42%2022%208.5c0%203.78-3.4%206.86-8.55%2011.53L12%2021.35z'%2F%3E%3CradialGradient%20id%3D'g'%20cx%3D'35%25'%20cy%3D'30%25'%20r%3D'75%25'%3E%3Cstop%20offset%3D'0%25'%20stop-color%3D'%23ff5fb0'%2F%3E%3Cstop%20offset%3D'100%25'%20stop-color%3D'%23a4147e'%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Cg%20fill%3D'url(%23g)'%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(20%2080)%20scale(3.2)'%20opacity%3D'.16'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(300%2040)%20scale(2.2)'%20opacity%3D'.12'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(210%20190)%20scale(1.4)'%20opacity%3D'.20'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(60%20330)%20scale(5.5)'%20opacity%3D'.14'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(320%20300)%20scale(1.8)'%20opacity%3D'.22'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(240%20430)%20scale(3.4)'%20opacity%3D'.12'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(30%20560)%20scale(2)'%20opacity%3D'.24'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(250%20590)%20scale(4.6)'%20opacity%3D'.15'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(150%20690)%20scale(1.2)'%20opacity%3D'.18'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+  --t-bubble-mine-bg: linear-gradient(160deg, #ff4fa0 0%, #ef2f8d 55%, #c9187f 100%);
+  --t-bubble-mine-border: rgba(255,140,200,0.35);
+  --t-bubble-mine-shadow: 0 2px 10px rgba(233,30,140,0.30);
+  --t-bubble-other-bg: linear-gradient(160deg, #3a2450 0%, #311d45 100%);
+  --t-bubble-other-color: #f2e6fb;
+  --t-bubble-other-border: rgba(255,255,255,0.08);
+  --t-composer-bg: #180827;
+  --t-border: rgba(255,255,255,0.10);
+  --t-input-bg: #241038;
+  --t-input-color: #fbe9ff;
+  --t-placeholder: rgba(240,220,255,0.4);
+  --t-accent: #ff7cc0;
+  --t-text-muted: rgba(235,215,250,0.6);
+  --t-reply-preview-bg: rgba(255,255,255,0.05);
+}
+
+.hb-chat-container[data-hb-chat-theme="glossy-hearts"],
+.hb-theme-swatch[data-swatch="glossy-hearts"] {
+  --t-overlay-bg: #6d0827;
+  --t-sheet-bg: #5b0721;
+  --t-sheet-border: rgba(255,255,255,0.08);
+  --t-header-bg: linear-gradient(135deg, #e0115f, #900c3f);
+  --t-viewport-flat: #a30f42;
+  --t-viewport-grad: linear-gradient(180deg, #c1134e 0%, #a30f42 55%, #8a0c37 100%);
+  --t-viewport-art: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'420'%20height%3D'740'%20viewBox%3D'0%200%20420%20740'%3E%3Cdefs%3E%3Cpath%20id%3D'h'%20d%3D'M12%2021.35l-1.45-1.32C5.4%2015.36%202%2012.28%202%208.5%202%205.42%204.42%203%207.5%203c1.74%200%203.41.81%204.5%202.09C13.09%203.81%2014.76%203%2016.5%203%2019.58%203%2022%205.42%2022%208.5c0%203.78-3.4%206.86-8.55%2011.53L12%2021.35z'%2F%3E%3CradialGradient%20id%3D'g'%20cx%3D'38%25'%20cy%3D'30%25'%20r%3D'80%25'%3E%3Cstop%20offset%3D'0%25'%20stop-color%3D'%23ff8fc0'%2F%3E%3Cstop%20offset%3D'55%25'%20stop-color%3D'%23f42a80'%2F%3E%3Cstop%20offset%3D'100%25'%20stop-color%3D'%23b80f58'%2F%3E%3C%2FradialGradient%3E%3Cg%20id%3D'gh'%3E%3Cuse%20href%3D'%23h'%20fill%3D'url(%23g)'%2F%3E%3Cellipse%20cx%3D'8'%20cy%3D'7'%20rx%3D'4'%20ry%3D'2.6'%20fill%3D'%23fff'%20opacity%3D'.5'%2F%3E%3C%2Fg%3E%3Cpath%20id%3D's'%20d%3D'M0%20-7L1.6%20-1.6%207%200%201.6%201.6%200%207%20-1.6%201.6%20-7%200%20-1.6%20-1.6Z'%20fill%3D'%23fff'%2F%3E%3C%2Fdefs%3E%3Cuse%20href%3D'%23gh'%20transform%3D'translate(30%2060)%20scale(4.2)'%20opacity%3D'.55'%2F%3E%3Cuse%20href%3D'%23gh'%20transform%3D'translate(290%20130)%20scale(2.6)'%20opacity%3D'.6'%2F%3E%3Cuse%20href%3D'%23gh'%20transform%3D'translate(140%20260)%20scale(1.6)'%20opacity%3D'.5'%2F%3E%3Cuse%20href%3D'%23gh'%20transform%3D'translate(40%20400)%20scale(3)'%20opacity%3D'.55'%2F%3E%3Cuse%20href%3D'%23gh'%20transform%3D'translate(280%20420)%20scale(4.8)'%20opacity%3D'.5'%2F%3E%3Cuse%20href%3D'%23gh'%20transform%3D'translate(120%20610)%20scale(2.2)'%20opacity%3D'.6'%2F%3E%3Cuse%20href%3D'%23s'%20transform%3D'translate(240%2090)%20scale(1.4)'%20opacity%3D'.8'%2F%3E%3Cuse%20href%3D'%23s'%20transform%3D'translate(90%20330)%20scale(1)'%20opacity%3D'.7'%2F%3E%3Cuse%20href%3D'%23s'%20transform%3D'translate(330%20560)%20scale(1.8)'%20opacity%3D'.85'%2F%3E%3Cuse%20href%3D'%23s'%20transform%3D'translate(200%20500)%20scale(0.9)'%20opacity%3D'.6'%2F%3E%3C%2Fsvg%3E");
+  --t-bubble-mine-bg: linear-gradient(160deg, #ff77b0 0%, #f4327f 60%, #d61e6a 100%);
+  --t-bubble-mine-border: rgba(255,255,255,0.28);
+  --t-bubble-mine-shadow: 0 2px 10px rgba(120,6,45,0.35);
+  --t-bubble-other-bg: linear-gradient(160deg, #4a0a22 0%, #3d081c 100%);
+  --t-bubble-other-color: #ffd7e6;
+  --t-bubble-other-border: rgba(255,150,180,0.18);
+  --t-composer-bg: #55071f;
+  --t-border: rgba(255,255,255,0.16);
+  --t-input-bg: #6b0a29;
+  --t-input-color: #ffe3ee;
+  --t-placeholder: rgba(255,215,230,0.45);
+  --t-accent: #ff9ec4;
+  --t-text-muted: rgba(255,220,235,0.65);
+  --t-reply-preview-bg: rgba(255,255,255,0.07);
+}
+
+.hb-chat-container[data-hb-chat-theme="pastel-hearts"],
+.hb-theme-swatch[data-swatch="pastel-hearts"] {
+  --t-overlay-bg: #ffe6ee;
+  --t-sheet-bg: #ffffff;
+  --t-sheet-border: rgba(255,150,180,0.30);
+  --t-sheet-shadow: 0 -4px 14px rgba(255,120,160,0.15);
+  --t-header-bg: linear-gradient(135deg, #ffa3bd, #ff6f9c);
+  --t-header-shadow: 0 3px 14px rgba(255,111,156,0.30), inset 0 1px 0 rgba(255,255,255,0.35);
+  --t-viewport-flat: #ffeef2;
+  --t-viewport-grad: linear-gradient(180deg, #fff3f5 0%, #ffe6ec 100%);
+  --t-viewport-art: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'420'%20height%3D'740'%20viewBox%3D'0%200%20420%20740'%3E%3Cdefs%3E%3Cpath%20id%3D'h'%20d%3D'M12%2021.35l-1.45-1.32C5.4%2015.36%202%2012.28%202%208.5%202%205.42%204.42%203%207.5%203c1.74%200%203.41.81%204.5%202.09C13.09%203.81%2014.76%203%2016.5%203%2019.58%203%2022%205.42%2022%208.5c0%203.78-3.4%206.86-8.55%2011.53L12%2021.35z'%2F%3E%3C%2Fdefs%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(40%2050)%20scale(1.1)'%20fill%3D'%23e63956'%20opacity%3D'.95'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(150%2030)%20scale(0.7)'%20fill%3D'%23f9c6d2'%20opacity%3D'.9'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(300%2070)%20scale(1.3)'%20fill%3D'%23d9a441'%20opacity%3D'.9'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(230%20140)%20scale(0.8)'%20fill%3D'%23f48aa2'%20opacity%3D'.9'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(80%20190)%20scale(0.6)'%20fill%3D'%23ffffff'%20opacity%3D'.75'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(350%20200)%20scale(0.9)'%20fill%3D'%23e63956'%20opacity%3D'.9'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(170%20260)%20scale(1.2)'%20fill%3D'%23f9c6d2'%20opacity%3D'.95'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(30%20340)%20scale(0.9)'%20fill%3D'%23d9a441'%20opacity%3D'.85'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(280%20330)%20scale(0.6)'%20fill%3D'%23e63956'%20opacity%3D'.9'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(110%20430)%20scale(1.3)'%20fill%3D'%23f48aa2'%20opacity%3D'.9'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(330%20450)%20scale(0.8)'%20fill%3D'%23f9c6d2'%20opacity%3D'.95'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(200%20520)%20scale(0.7)'%20fill%3D'%23e63956'%20opacity%3D'.95'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(60%20590)%20scale(1)'%20fill%3D'%23ffffff'%20opacity%3D'.7'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(300%20620)%20scale(1.1)'%20fill%3D'%23e63956'%20opacity%3D'.9'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(160%20680)%20scale(0.8)'%20fill%3D'%23d9a441'%20opacity%3D'.85'%2F%3E%3C%2Fsvg%3E");
+  --t-bubble-mine-bg: linear-gradient(160deg, #ff8fb0 0%, #f75f8f 60%, #e4487b 100%);
+  --t-bubble-mine-border: rgba(255,255,255,0.35);
+  --t-bubble-mine-shadow: 0 2px 8px rgba(228,72,123,0.25);
+  --t-bubble-other-bg: #ffffff;
+  --t-bubble-other-color: #86344e;
+  --t-bubble-other-border: rgba(244,138,162,0.35);
+  --t-bubble-other-shadow: 0 1px 4px rgba(228,72,123,0.10);
+  --t-composer-bg: rgba(255,250,252,0.92);
+  --t-border: rgba(244,138,162,0.40);
+  --t-input-bg: rgba(255,255,255,0.9);
+  --t-input-color: #86344e;
+  --t-placeholder: rgba(134,52,78,0.45);
+  --t-accent: #e4487b;
+  --t-text-muted: rgba(134,52,78,0.6);
+  --t-reply-preview-bg: rgba(255,240,245,0.9);
+}
+
+.hb-chat-container[data-hb-chat-theme="midnight-love"],
+.hb-theme-swatch[data-swatch="midnight-love"] {
+  --t-overlay-bg: #070a1c;
+  --t-sheet-bg: #0a0e24;
+  --t-sheet-border: rgba(255,255,255,0.06);
+  --t-header-bg: linear-gradient(135deg, #312a72, #8f3390);
+  --t-viewport-flat: #0e0f2c;
+  --t-viewport-grad: linear-gradient(180deg, #0a0e24 0%, #131034 55%, #1a1240 100%);
+  --t-viewport-art: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'420'%20height%3D'740'%20viewBox%3D'0%200%20420%20740'%3E%3Cdefs%3E%3Cpath%20id%3D'h'%20d%3D'M12%2021.35l-1.45-1.32C5.4%2015.36%202%2012.28%202%208.5%202%205.42%204.42%203%207.5%203c1.74%200%203.41.81%204.5%202.09C13.09%203.81%2014.76%203%2016.5%203%2019.58%203%2022%205.42%2022%208.5c0%203.78-3.4%206.86-8.55%2011.53L12%2021.35z'%2F%3E%3Cpath%20id%3D's'%20d%3D'M0%20-7L1.6%20-1.6%207%200%201.6%201.6%200%207%20-1.6%201.6%20-7%200%20-1.6%20-1.6Z'%20fill%3D'%23fff'%2F%3E%3C%2Fdefs%3E%3Cg%20fill%3D'%23fff'%3E%3Ccircle%20cx%3D'30'%20cy%3D'40'%20r%3D'1.2'%20opacity%3D'0.7'%2F%3E%3Ccircle%20cx%3D'120'%20cy%3D'90'%20r%3D'1'%20opacity%3D'0.45'%2F%3E%3Ccircle%20cx%3D'210'%20cy%3D'50'%20r%3D'1.5'%20opacity%3D'0.8'%2F%3E%3Ccircle%20cx%3D'330'%20cy%3D'120'%20r%3D'1'%20opacity%3D'0.5'%2F%3E%3Ccircle%20cx%3D'390'%20cy%3D'30'%20r%3D'1.2'%20opacity%3D'0.65'%2F%3E%3Ccircle%20cx%3D'70'%20cy%3D'180'%20r%3D'1'%20opacity%3D'0.4'%2F%3E%3Ccircle%20cx%3D'260'%20cy%3D'210'%20r%3D'1.3'%20opacity%3D'0.7'%2F%3E%3Ccircle%20cx%3D'160'%20cy%3D'290'%20r%3D'1'%20opacity%3D'0.5'%2F%3E%3Ccircle%20cx%3D'360'%20cy%3D'320'%20r%3D'1.5'%20opacity%3D'0.75'%2F%3E%3Ccircle%20cx%3D'40'%20cy%3D'380'%20r%3D'1'%20opacity%3D'0.45'%2F%3E%3Ccircle%20cx%3D'300'%20cy%3D'470'%20r%3D'1.2'%20opacity%3D'0.6'%2F%3E%3Ccircle%20cx%3D'110'%20cy%3D'520'%20r%3D'1.5'%20opacity%3D'0.8'%2F%3E%3Ccircle%20cx%3D'230'%20cy%3D'580'%20r%3D'1'%20opacity%3D'0.5'%2F%3E%3Ccircle%20cx%3D'380'%20cy%3D'620'%20r%3D'1.2'%20opacity%3D'0.65'%2F%3E%3Ccircle%20cx%3D'60'%20cy%3D'660'%20r%3D'1'%20opacity%3D'0.45'%2F%3E%3Ccircle%20cx%3D'180'%20cy%3D'710'%20r%3D'1.3'%20opacity%3D'0.7'%2F%3E%3C%2Fg%3E%3Cuse%20href%3D'%23s'%20transform%3D'translate(90%20250)%20scale(1.1)'%20opacity%3D'.8'%2F%3E%3Cuse%20href%3D'%23s'%20transform%3D'translate(320%20400)%20scale(0.9)'%20opacity%3D'.7'%2F%3E%3Cuse%20href%3D'%23s'%20transform%3D'translate(150%20640)%20scale(1.2)'%20opacity%3D'.75'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(250%20150)%20scale(1.5)'%20fill%3D'%23ff6fae'%20opacity%3D'.14'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(60%20460)%20scale(2.4)'%20fill%3D'%23ff6fae'%20opacity%3D'.12'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(320%20680)%20scale(1.2)'%20fill%3D'%23ff6fae'%20opacity%3D'.16'%2F%3E%3C%2Fsvg%3E");
+  --t-bubble-mine-bg: linear-gradient(160deg, #ff6fa5 0%, #e13f7b 60%, #bd2960 100%);
+  --t-bubble-mine-border: rgba(255,150,190,0.30);
+  --t-bubble-mine-shadow: 0 2px 10px rgba(225,63,123,0.30);
+  --t-bubble-other-bg: #1d2140;
+  --t-bubble-other-color: #dfe3f7;
+  --t-bubble-other-border: rgba(255,255,255,0.07);
+  --t-composer-bg: #0a0e24;
+  --t-border: rgba(255,255,255,0.10);
+  --t-input-bg: #171b38;
+  --t-input-color: #e8ebff;
+  --t-placeholder: rgba(220,225,255,0.4);
+  --t-accent: #ff8fc0;
+  --t-text-muted: rgba(220,225,255,0.55);
+  --t-reply-preview-bg: rgba(255,255,255,0.05);
+}
+
+.hb-chat-container[data-hb-chat-theme="rose"],
+.hb-theme-swatch[data-swatch="rose"] {
+  --t-overlay-bg: #f8e3d9;
+  --t-sheet-bg: #fffaf6;
+  --t-sheet-border: rgba(157,34,53,0.20);
+  --t-sheet-shadow: 0 -4px 14px rgba(157,34,53,0.12);
+  --t-header-bg: linear-gradient(135deg, #b21e4b, #7c1330);
+  --t-header-shadow: 0 3px 14px rgba(124,19,48,0.30), inset 0 1px 0 rgba(255,255,255,0.18);
+  --t-viewport-flat: #fbe9dd;
+  --t-viewport-grad: linear-gradient(180deg, #fdf1e7 0%, #fae2d6 55%, #f6d5c9 100%);
+  --t-viewport-art: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'420'%20height%3D'740'%20viewBox%3D'0%200%20420%20740'%3E%3Cdefs%3E%3Cpath%20id%3D'h'%20d%3D'M12%2021.35l-1.45-1.32C5.4%2015.36%202%2012.28%202%208.5%202%205.42%204.42%203%207.5%203c1.74%200%203.41.81%204.5%202.09C13.09%203.81%2014.76%203%2016.5%203%2019.58%203%2022%205.42%2022%208.5c0%203.78-3.4%206.86-8.55%2011.53L12%2021.35z'%2F%3E%3C%2Fdefs%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(50%2070)%20scale(2.6)'%20fill%3D'%239d2235'%20opacity%3D'.10'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(300%20120)%20scale(1.5)'%20fill%3D'%239d2235'%20opacity%3D'.12'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(160%20240)%20scale(1)'%20fill%3D'%239d2235'%20opacity%3D'.16'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(340%20330)%20scale(2.2)'%20fill%3D'%239d2235'%20opacity%3D'.09'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(60%20420)%20scale(1.3)'%20fill%3D'%239d2235'%20opacity%3D'.14'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(230%20500)%20scale(3)'%20fill%3D'%239d2235'%20opacity%3D'.08'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(120%20620)%20scale(1.6)'%20fill%3D'%239d2235'%20opacity%3D'.12'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(330%20660)%20scale(1)'%20fill%3D'%239d2235'%20opacity%3D'.15'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(240%2060)%20scale(0.8)'%20fill%3D'%23c94f63'%20opacity%3D'.22'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(110%20320)%20scale(0.7)'%20fill%3D'%23c94f63'%20opacity%3D'.2'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(370%20480)%20scale(0.8)'%20fill%3D'%23c94f63'%20opacity%3D'.22'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(40%20550)%20scale(0.6)'%20fill%3D'%23c94f63'%20opacity%3D'.2'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(280%20700)%20scale(0.6)'%20fill%3D'%23c94f63'%20opacity%3D'.2'%2F%3E%3C%2Fsvg%3E");
+  --t-bubble-mine-bg: linear-gradient(160deg, #c22550 0%, #a4133c 55%, #85102f 100%);
+  --t-bubble-mine-border: rgba(255,255,255,0.22);
+  --t-bubble-mine-shadow: 0 2px 8px rgba(164,19,60,0.28);
+  --t-bubble-other-bg: #ffffff;
+  --t-bubble-other-color: #6d2333;
+  --t-bubble-other-border: rgba(157,34,53,0.18);
+  --t-bubble-other-shadow: 0 1px 4px rgba(157,34,53,0.10);
+  --t-composer-bg: rgba(253,244,238,0.92);
+  --t-border: rgba(157,34,53,0.25);
+  --t-input-bg: rgba(255,255,255,0.92);
+  --t-input-color: #6d2333;
+  --t-placeholder: rgba(109,35,51,0.45);
+  --t-accent: #a4133c;
+  --t-text-muted: rgba(109,35,51,0.6);
+  --t-reply-preview-bg: rgba(251,236,228,0.9);
+}
+
+.hb-chat-container[data-hb-chat-theme="minimal-love"],
+.hb-theme-swatch[data-swatch="minimal-love"] {
+  --t-overlay-bg: #f7f4f5;
+  --t-sheet-bg: #ffffff;
+  --t-sheet-border: rgba(0,0,0,0.06);
+  --t-sheet-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+  --t-header-bg: #ff7096;
+  --t-header-shadow: 0 2px 10px rgba(255,112,150,0.30);
+  --t-viewport-flat: #fdfafa;
+  --t-viewport-grad: linear-gradient(180deg, #fdfcfc 0%, #fdf4f6 100%);
+  --t-viewport-art: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'420'%20height%3D'740'%20viewBox%3D'0%200%20420%20740'%3E%3Cdefs%3E%3Cpath%20id%3D'h'%20d%3D'M12%2021.35l-1.45-1.32C5.4%2015.36%202%2012.28%202%208.5%202%205.42%204.42%203%207.5%203c1.74%200%203.41.81%204.5%202.09C13.09%203.81%2014.76%203%2016.5%203%2019.58%203%2022%205.42%2022%208.5c0%203.78-3.4%206.86-8.55%2011.53L12%2021.35z'%2F%3E%3C%2Fdefs%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(60%2090)%20scale(1.6)'%20fill%3D'none'%20stroke%3D'%23e8a9bc'%20stroke-width%3D'1.1'%20opacity%3D'.5'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(300%20180)%20scale(1.1)'%20fill%3D'none'%20stroke%3D'%23e8a9bc'%20stroke-width%3D'1.1'%20opacity%3D'.45'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(150%20350)%20scale(2)'%20fill%3D'none'%20stroke%3D'%23e8a9bc'%20stroke-width%3D'1'%20opacity%3D'.4'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(330%20480)%20scale(1.3)'%20fill%3D'none'%20stroke%3D'%23e8a9bc'%20stroke-width%3D'1.1'%20opacity%3D'.5'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(80%20590)%20scale(1)'%20fill%3D'none'%20stroke%3D'%23e8a9bc'%20stroke-width%3D'1.2'%20opacity%3D'.45'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(220%20120)%20scale(0.6)'%20fill%3D'%23ffd1dc'%20opacity%3D'.8'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(90%20260)%20scale(0.5)'%20fill%3D'%23ffd1dc'%20opacity%3D'.7'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(360%20340)%20scale(0.5)'%20fill%3D'%23ffd1dc'%20opacity%3D'.75'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(200%20560)%20scale(0.6)'%20fill%3D'%23ffd1dc'%20opacity%3D'.8'%2F%3E%3Cuse%20href%3D'%23h'%20transform%3D'translate(300%20690)%20scale(0.5)'%20fill%3D'%23ffd1dc'%20opacity%3D'.7'%2F%3E%3C%2Fsvg%3E");
+  --t-bubble-mine-bg: #ff5c8a;
+  --t-bubble-mine-border: rgba(255,255,255,0.25);
+  --t-bubble-mine-shadow: 0 1px 3px rgba(0,0,0,0.10);
+  --t-bubble-other-bg: #f3f2f3;
+  --t-bubble-other-color: #3f3a3d;
+  --t-bubble-other-border: rgba(0,0,0,0.05);
+  --t-bubble-other-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  --t-composer-bg: #ffffff;
+  --t-border: rgba(0,0,0,0.08);
+  --t-input-bg: #f6f4f5;
+  --t-input-color: #4a4247;
+  --t-placeholder: rgba(74,66,71,0.45);
+  --t-accent: #f0517f;
+  --t-text-muted: rgba(74,66,71,0.55);
+  --t-reply-preview-bg: #faf7f8;
+}
+
+/* Swatch-only tokens for the two built-in themes (gallery preview cards) */
+.hb-theme-swatch[data-swatch="light"] {
+  --t-viewport-flat: #ffe7f0;
+  --t-viewport-grad: linear-gradient(180deg, #fff2f7 0%, #ffe7f0 50%, #ffdaea 100%);
+  --t-bubble-mine-bg: linear-gradient(160deg, #ff90b3 0%, #ff5f8a 55%, #d8285d 100%);
+  --t-bubble-other-bg: #ffffff;
+}
+.hb-theme-swatch[data-swatch="dark"] {
+  --t-viewport-flat: #0a0407;
+  --t-viewport-grad: radial-gradient(ellipse at 50% 0%, #14060b 0%, #0a0407 60%, #050203 100%);
+  --t-bubble-mine-bg: linear-gradient(160deg, #ff5f8a 0%, #e83671 55%, #c9184a 100%);
+  --t-bubble-other-bg: #2a2a2c;
+}
+
+/* ── Applying the tokens to the real chat UI (custom themes only; the
+      built-in light/dark keep their original, untouched styling) ────────── */
+
+.hb-chat-container[data-hb-custom-theme] {
+  background: var(--t-overlay-bg) !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-sheet {
+  background: var(--t-sheet-bg) !important;
+  border: 1.5px solid var(--t-sheet-border) !important;
+  box-shadow: var(--t-sheet-shadow, 0 -4px 16px rgba(0,0,0,0.25)) !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-header {
+  background: var(--t-header-bg) !important;
+  box-shadow: var(--t-header-shadow, 0 2px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.14)) !important;
+}
+/* The wallpaper: ONE static cached tile + one gradient. Costs ~0 after paint. */
+.hb-chat-container[data-hb-custom-theme] .hb-chat-messages-viewport {
+  background-color: var(--t-viewport-flat, #ffdaea) !important;
+  background-image: var(--t-viewport-art, none), var(--t-viewport-grad, none) !important;
+  background-repeat: repeat, no-repeat !important;
+  background-size: 420px 740px, 100% 100% !important;
+  background-position: 0 0, 0 0 !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-empty-heading {
+  color: var(--t-accent) !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-empty-sub {
+  color: var(--t-text-muted) !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-bubble-mine {
+  background: var(--t-bubble-mine-bg) !important;
+  color: #fff !important;
+  border: 1px solid var(--t-bubble-mine-border, rgba(255,255,255,0.25)) !important;
+  box-shadow: var(--t-bubble-mine-shadow, 0 2px 8px rgba(0,0,0,0.18)), inset 0 1px 0 rgba(255,255,255,0.20) !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-bubble-other {
+  background: var(--t-bubble-other-bg) !important;
+  color: var(--t-bubble-other-color) !important;
+  border: 1px solid var(--t-bubble-other-border, rgba(0,0,0,0.06)) !important;
+  box-shadow: var(--t-bubble-other-shadow, 0 2px 8px rgba(0,0,0,0.22)) !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-bubble-other .hb-chat-bubble-reply {
+  background: var(--t-reply-preview-bg) !important;
+  border-color: var(--t-bubble-other-border) !important;
+  color: var(--t-bubble-other-color) !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-bubble-other .hb-chat-bubble-reply p {
+  color: var(--t-bubble-other-color) !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-composer {
+  background: var(--t-composer-bg) !important;
+  border-top: 1px solid var(--t-border) !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-input {
+  background: var(--t-input-bg) !important;
+  color: var(--t-input-color) !important;
+  border: 1.5px solid var(--t-border) !important;
+  box-shadow: none !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-input::placeholder {
+  color: var(--t-placeholder) !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-attach-btn {
+  background: var(--t-input-bg) !important;
+  color: var(--t-accent) !important;
+  border: 1.5px solid var(--t-border) !important;
+  box-shadow: none !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-sender-label {
+  color: var(--t-text-muted) !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-sender-select {
+  background: var(--t-input-bg) !important;
+  color: var(--t-input-color) !important;
+  border: 1px solid var(--t-border) !important;
+  box-shadow: none !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-typing {
+  background: var(--t-composer-bg) !important;
+  color: var(--t-text-muted) !important;
+  border-top: 1px solid var(--t-border) !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-reply-preview {
+  background: var(--t-reply-preview-bg) !important;
+  border: 1px solid var(--t-border) !important;
+  box-shadow: none !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-reply-preview-cancel {
+  background: var(--t-input-bg) !important;
+  color: var(--t-input-color) !important;
+  border: 1px solid var(--t-border) !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-reply-preview .hb-chat-reply-label {
+  color: var(--t-accent) !important;
+}
+.hb-chat-container[data-hb-custom-theme] .hb-chat-reply-preview .hb-chat-reply-body,
+.hb-chat-container[data-hb-custom-theme] .hb-chat-reply-preview .hb-chat-reply-body p {
+  color: var(--t-text-muted) !important;
+}
+
+/* ── Gallery swatch cards: reuse the exact same tokens, zero extra assets ── */
+.hb-theme-swatch {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--t-viewport-flat, #fff);
+  background-image: var(--t-viewport-art, none), var(--t-viewport-grad, none);
+  background-repeat: repeat, no-repeat;
+  background-size: 210px 370px, 100% 100%;
+  background-position: 0 0, 0 0;
+}
+.hb-theme-swatch::before,
+.hb-theme-swatch::after {
+  content: "";
+  position: absolute;
+  height: 14px;
+}
+.hb-theme-swatch::before {
+  left: 8px;
+  top: 14px;
+  width: 56%;
+  border-radius: 4px 10px 10px 10px;
+  background: var(--t-bubble-other-bg, #ffffff);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.hb-theme-swatch::after {
+  right: 8px;
+  top: 38px;
+  width: 62%;
+  border-radius: 10px 4px 10px 10px;
+  background: var(--t-bubble-mine-bg, #ff5c8a);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+/* ── One-shot gallery entrance (no loops; killed by reduced-motion rule) ── */
+@keyframes hb-theme-sheet-in {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes hb-theme-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.hb-theme-sheet { animation: hb-theme-sheet-in 0.22s ease-out; }
+.hb-theme-backdrop { animation: hb-theme-fade-in 0.18s ease-out; }
+.hb-theme-previewbar { animation: hb-theme-sheet-in 0.2s ease-out; }
+
+/* ── "Reduce visual effects" mode: strip wallpaper art, heavy shadows,
+      backdrop blur and theme transitions for absolute minimum GPU/CPU ───── */
+.hb-chat-container[data-hb-reduce-fx][data-hb-custom-theme] .hb-chat-messages-viewport {
+  background-image: var(--t-viewport-grad, none) !important;
+  background-repeat: no-repeat !important;
+  background-size: 100% 100% !important;
+}
+.hb-chat-container[data-hb-reduce-fx] .hb-chat-bubble-mine,
+.hb-chat-container[data-hb-reduce-fx] .hb-chat-bubble-other {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.10) !important;
+}
+.hb-chat-container[data-hb-reduce-fx] .hb-chat-sheet,
+.hb-chat-container[data-hb-reduce-fx] .hb-chat-header {
+  box-shadow: none !important;
+}
+.hb-chat-container[data-hb-reduce-fx] .hb-chat-bubble-reply {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.hb-chat-container[data-hb-reduce-fx] *,
+.hb-chat-container[data-hb-reduce-fx] {
+  transition-duration: 0s !important;
+}
+
+/* ── Respect prefers-reduced-motion: also stop theme-switch transitions
+      (decorative animations are already disabled globally above) ─────────── */
+@media (prefers-reduced-motion: reduce) {
+  .hb-chat-container,
+  .hb-chat-container *,
+  .hb-theme-sheet,
+  .hb-theme-backdrop,
+  .hb-theme-previewbar {
+    transition: none !important;
+    animation: none !important;
+  }
+}
